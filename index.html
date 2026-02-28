@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador - Medios Impresos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        .calculator {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .section:last-of-type {
+            border-bottom: none;
+        }
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .checkbox-group label:hover {
+            background: #e9ecef;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .info-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 1.1em;
+        }
+        .info-box span {
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+        .breakdown {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+        .breakdown-item span:first-child {
+            color: #666;
+        }
+        .breakdown-item span:last-child {
+            font-weight: 600;
+            color: #333;
+        }
+        .total-section {
+            margin-top: 30px;
+        }
+        .total {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .total h2 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        .total-amount {
+            font-size: 3em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .btn-copy {
+            width: 100%;
+            padding: 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-copy:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        .btn-copy:active {
+            transform: translateY(0);
+        }
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+            .calculator {
+                padding: 20px;
+            }
+            .total-amount {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💼 Cotizador de Medios Impresos</h1>
+            <p>Calcula el precio de tu proyecto en segundos</p>
+        </header>
+
+        <div class="calculator">
+            <div class="section">
+                <h2>📏 Medidas</h2>
+                <div class="form-group">
+                    <label for="metros">Metros Lineales:</label>
+                    <input type="number" id="metros" step="0.01" min="0" placeholder="Ej: 5.5">
+                </div>
+                <div class="form-group">
+                    <label for="ancho">Ancho (metros):</label>
+                    <input type="number" id="ancho" step="0.01" min="0" value="1" placeholder="Ej: 1.5">
+                </div>
+                <div class="info-box">
+                    <strong>Metros cuadrados:</strong> <span id="m2Display">0.00 m²</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🎨 Sustrato / Material</h2>
+                <div class="form-group">
+                    <label for="material">Selecciona el material:</label>
+                    <select id="material">
+                        <option value="0">-- Seleccionar --</option>
+                        <optgroup label="Lonas y Telas">
+                            <option value="17000">Banner - $17,000/m²</option>
+                            <option value="35000">Panaflex - $35,000/m²</option>
+                            <option value="35000-2">Microperforado - $35,000/m²</option>
+                            <option value="95000-1.27">Lienzo - $95,000/1.27m</option>
+                        </optgroup>
+                        <optgroup label="Vinilos">
+                            <option value="22000">Vinilo - $22,000/m²</option>
+                            <option value="35000-0.6">Vinilo Petroquelado - $35,000/60cm</option>
+                            <option value="49800">Vinilo Holográfico - $49,800/m²</option>
+                            <option value="75000-0.6">Vinilo Holográfico Petroquelado - $75,000/60cm</option>
+                        </optgroup>
+                        <optgroup label="Acabados Especiales">
+                            <option value="12000">Mate - $12,000/m²</option>
+                            <option value="12000-2">Brillante - $12,000/m²</option>
+                            <option value="25000">3D - $25,000/m²</option>
+                            <option value="25000-1.27">Tornasolado - $25,000/1.27m</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>✨ Terminados</h2>
+                <div class="form-group">
+                    <label for="ojaletes">Ojaletes ($2,000 c/u):</label>
+                    <input type="number" id="ojaletes" min="0" value="0" placeholder="Cantidad">
+                </div>
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="perfiles">
+                        Perfiles plásticos para pendones - $20,000
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="diseno">Diseño (opcional):</label>
+                    <input type="number" id="diseno" min="0" value="0" placeholder="Ingresa el valor">
+                </div>
+            </div>
+
+            <div class="total-section">
+                <div class="breakdown">
+                    <div class="breakdown-item">
+                        <span>Material:</span>
+                        <span id="materialCost">$0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Ojaletes:</span>
+                        <span id="ojaletesCost">$0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Perfiles:</span>
+                        <span id="perfilesCost">$0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Diseño:</span>
+                        <span id="disenoCost">$0</span>
+                    </div>
+                </div>
+                <div class="total">
+                    <h2>TOTAL:</h2>
+                    <div class="total-amount" id="totalAmount">$0</div>
+                </div>
+                <button class="btn-copy" onclick="copiarCotizacion()">📋 Copiar Cotización</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let metros = 0, ancho = 1, m2 = 0, materialPrecio = 0, materialUnidad = 1;
+        
+        const metrosInput = document.getElementById('metros');
+        const anchoInput = document.getElementById('ancho');
+        const m2Display = document.getElementById('m2Display');
+        const materialSelect = document.getElementById('material');
+        const ojaletesInput = document.getElementById('ojaletes');
+        const perfilesCheckbox = document.getElementById('perfiles');
+        const disenoInput = document.getElementById('diseno');
+        
+        metrosInput.addEventListener('input', calcular);
+        anchoInput.addEventListener('input', calcular);
+        materialSelect.addEventListener('change', calcular);
+        ojaletesInput.addEventListener('input', calcular);
+        perfilesCheckbox.addEventListener('change', calcular);
+        disenoInput.addEventListener('input', calcular);
+        
+        function calcular() {
+            metros = parseFloat(metrosInput.value) || 0;
+            ancho = parseFloat(anchoInput.value) || 1;
+            m2 = metros * ancho;
+            m2Display.textContent = m2.toFixed(2) + ' m²';
+            
+            const materialValue = materialSelect.value;
+            if (materialValue.includes('-')) {
+                const parts = materialValue.split('-');
+                materialPrecio = parseFloat(parts[0]);
+                materialUnidad = parseFloat(parts[1]);
+            } else {
+                materialPrecio = parseFloat(materialValue) || 0;
+                materialUnidad = 1;
+            }
+            
+            let costoMaterial = materialUnidad === 1 ? m2 * materialPrecio : metros * materialPrecio;
+            const costoOjaletes = (parseInt(ojaletesInput.value) || 0) * 2000;
+            const costoPerfiles = perfilesCheckbox.checked ? 20000 : 0;
+            const costoDiseno = parseFloat(disenoInput.value) || 0;
+            const total = costoMaterial + costoOjaletes + costoPerfiles + costoDiseno;
+            
+            document.getElementById('materialCost').textContent = formatCurrency(costoMaterial);
+            document.getElementById('ojaletesCost').textContent = formatCurrency(costoOjaletes);
+            document.getElementById('perfilesCost').textContent = formatCurrency(costoPerfiles);
+            document.getElementById('disenoCost').textContent = formatCurrency(costoDiseno);
+            document.getElementById('totalAmount').textContent = formatCurrency(total);
+        }
+        
+        function formatCurrency(value) {
+            return '$' + Math.round(value).toLocaleString('es-CO');
+        }
+        
+        function copiarCotizacion() {
+            const material = materialSelect.options[materialSelect.selectedIndex].text;
+            const ojaletes = parseInt(ojaletesInput.value) || 0;
+            const perfiles = perfilesCheckbox.checked;
+            const diseno = parseFloat(disenoInput.value) || 0;
+            
+            let texto = '📋 COTIZACIÓN - MEDIOS IMPRESOS\n\n';
+            texto += '📏 Medidas:\n';
+            texto += '   • Metros lineales: ' + metros.toFixed(2) + 'm\n';
+            texto += '   • Ancho: ' + ancho.toFixed(2) + 'm\n';
+            texto += '   • Total: ' + m2.toFixed(2) + ' m²\n\n';
+            texto += '🎨 Material:\n   • ' + material + '\n';
+            texto += '   • Costo: ' + document.getElementById('materialCost').textContent + '\n\n';
+            
+            if (ojaletes > 0 || perfiles || diseno > 0) {
+                texto += '✨ Terminados:\n';
+                if (ojaletes > 0) texto += '   • Ojaletes (' + ojaletes + '): ' + document.getElementById('ojaletesCost').textContent + '\n';
+                if (perfiles) texto += '   • Perfiles plásticos: ' + document.getElementById('perfilesCost').textContent + '\n';
+                if (diseno > 0) texto += '   • Diseño: ' + document.getElementById('disenoCost').textContent + '\n';
+                texto += '\n';
+            }
+            
+            texto += '💰 TOTAL: ' + document.getElementById('totalAmount').textContent;
+            
+            navigator.clipboard.writeText(texto).then(() => {
+                const btn = document.querySelector('.btn-copy');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ ¡Copiado!';
+                setTimeout(() => { btn.textContent = originalText; }, 2000);
+            });
+        }
+        
+        calcular();
+    </script>
+</body>
+</html>
