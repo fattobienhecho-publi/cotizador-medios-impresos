@@ -109,6 +109,12 @@
             font-weight: bold;
             font-size: 1.3em;
         }
+        .info-box small {
+            display: block;
+            margin-top: 5px;
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
         .breakdown {
             background: #f8f9fa;
             padding: 20px;
@@ -210,11 +216,12 @@
                 </div>
                 <div class="info-box">
                     <strong>Metros cuadrados:</strong> <span id="m2Display">0.00 m²</span>
+                    <small id="minimoMsg"></small>
                 </div>
             </div>
 
             <div class="section">
-                <h2>🎨 Sustrato / Material</h2>
+                <h2>🎨 Material Base</h2>
                 <div class="form-group">
                     <label for="material">Selecciona el material:</label>
                     <select id="material">
@@ -223,7 +230,7 @@
                             <option value="17000">Banner - $17,000/m²</option>
                             <option value="35000">Panaflex - $35,000/m²</option>
                             <option value="35000-2">Microperforado - $35,000/m²</option>
-                            <option value="95000-1.27">Lienzo - $95,000/1.27m</option>
+                            <option value="25000-1.27">Lienzo - $25,000/1.27m</option>
                         </optgroup>
                         <optgroup label="Vinilos">
                             <option value="22000">Vinilo - $22,000/m²</option>
@@ -231,18 +238,26 @@
                             <option value="49800">Vinilo Holográfico - $49,800/m²</option>
                             <option value="75000-0.6">Vinilo Holográfico Petroquelado - $75,000/60cm</option>
                         </optgroup>
-                        <optgroup label="Acabados Especiales">
-                            <option value="12000">Mate - $12,000/m²</option>
-                            <option value="12000-2">Brillante - $12,000/m²</option>
-                            <option value="25000">3D - $25,000/m²</option>
-                            <option value="25000-1.27">Tornasolado - $25,000/1.27m</option>
-                        </optgroup>
                     </select>
                 </div>
             </div>
 
             <div class="section">
-                <h2>✨ Terminados</h2>
+                <h2>✨ Laminado (Opcional)</h2>
+                <div class="form-group">
+                    <label for="laminado">Tipo de laminado:</label>
+                    <select id="laminado">
+                        <option value="0">-- Sin laminado --</option>
+                        <option value="12000">Mate - $12,000/m²</option>
+                        <option value="12000-2">Brillante - $12,000/m²</option>
+                        <option value="25000">3D - $25,000/m²</option>
+                        <option value="25000-1.27">Tornasolado - $25,000/1.27m</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔧 Otros Terminados</h2>
                 <div class="form-group">
                     <label for="ojaletes">Ojaletes ($2,000 c/u):</label>
                     <input type="number" id="ojaletes" min="0" value="0" placeholder="Cantidad">
@@ -252,10 +267,6 @@
                         <input type="checkbox" id="perfiles">
                         Perfiles plásticos para pendones - $20,000
                     </label>
-                </div>
-                <div class="form-group">
-                    <label for="laminado">Laminado (precio por m²):</label>
-                    <input type="number" id="laminado" min="0" value="0" placeholder="Ingresa el precio por m²">
                 </div>
                 <div class="form-group">
                     <label for="diseno">Diseño (opcional):</label>
@@ -270,16 +281,16 @@
                         <span id="materialCost">$0</span>
                     </div>
                     <div class="breakdown-item">
+                        <span>Laminado:</span>
+                        <span id="laminadoCost">$0</span>
+                    </div>
+                    <div class="breakdown-item">
                         <span>Ojaletes:</span>
                         <span id="ojaletesCost">$0</span>
                     </div>
                     <div class="breakdown-item">
                         <span>Perfiles:</span>
                         <span id="perfilesCost">$0</span>
-                    </div>
-                    <div class="breakdown-item">
-                        <span>Laminado:</span>
-                        <span id="laminadoCost">$0</span>
                     </div>
                     <div class="breakdown-item">
                         <span>Diseño:</span>
@@ -296,31 +307,42 @@
     </div>
 
     <script>
-        let alto = 0, ancho = 0, m2 = 0, materialPrecio = 0, materialUnidad = 1;
+        let alto = 0, ancho = 0, m2Real = 0, m2Cobro = 0, materialPrecio = 0, materialUnidad = 1;
+        let laminadoPrecio = 0, laminadoUnidad = 1;
         
         const altoInput = document.getElementById('alto');
         const anchoInput = document.getElementById('ancho');
         const m2Display = document.getElementById('m2Display');
+        const minimoMsg = document.getElementById('minimoMsg');
         const materialSelect = document.getElementById('material');
+        const laminadoSelect = document.getElementById('laminado');
         const ojaletesInput = document.getElementById('ojaletes');
         const perfilesCheckbox = document.getElementById('perfiles');
-        const laminadoInput = document.getElementById('laminado');
         const disenoInput = document.getElementById('diseno');
         
         altoInput.addEventListener('input', calcular);
         anchoInput.addEventListener('input', calcular);
         materialSelect.addEventListener('change', calcular);
+        laminadoSelect.addEventListener('change', calcular);
         ojaletesInput.addEventListener('input', calcular);
         perfilesCheckbox.addEventListener('change', calcular);
-        laminadoInput.addEventListener('input', calcular);
         disenoInput.addEventListener('input', calcular);
         
         function calcular() {
             alto = parseFloat(altoInput.value) || 0;
             ancho = parseFloat(anchoInput.value) || 0;
-            m2 = alto * ancho;
-            m2Display.textContent = m2.toFixed(2) + ' m²';
+            m2Real = alto * ancho;
+            m2Cobro = Math.max(m2Real, 1); // Mínimo 1 m²
             
+            m2Display.textContent = m2Real.toFixed(2) + ' m²';
+            
+            if (m2Real > 0 && m2Real < 1) {
+                minimoMsg.textContent = '⚠️ Se cobrará mínimo 1 m²';
+            } else {
+                minimoMsg.textContent = '';
+            }
+            
+            // Material base
             const materialValue = materialSelect.value;
             if (materialValue.includes('-')) {
                 const parts = materialValue.split('-');
@@ -331,18 +353,42 @@
                 materialUnidad = 1;
             }
             
-            let costoMaterial = materialUnidad === 1 ? m2 * materialPrecio : alto * materialPrecio;
+            // Laminado
+            const laminadoValue = laminadoSelect.value;
+            if (laminadoValue.includes('-')) {
+                const parts = laminadoValue.split('-');
+                laminadoPrecio = parseFloat(parts[0]);
+                laminadoUnidad = parseFloat(parts[1]);
+            } else {
+                laminadoPrecio = parseFloat(laminadoValue) || 0;
+                laminadoUnidad = 1;
+            }
+            
+            // Calcular costos
+            let costoMaterial = 0;
+            let costoLaminado = 0;
+            
+            if (materialUnidad === 1) {
+                costoMaterial = m2Cobro * materialPrecio;
+            } else {
+                costoMaterial = alto * materialPrecio;
+            }
+            
+            if (laminadoUnidad === 1) {
+                costoLaminado = m2Cobro * laminadoPrecio;
+            } else {
+                costoLaminado = alto * laminadoPrecio;
+            }
+            
             const costoOjaletes = (parseInt(ojaletesInput.value) || 0) * 2000;
             const costoPerfiles = perfilesCheckbox.checked ? 20000 : 0;
-            const precioLaminadoM2 = parseFloat(laminadoInput.value) || 0;
-            const costoLaminado = m2 * precioLaminadoM2;
             const costoDiseno = parseFloat(disenoInput.value) || 0;
-            const total = costoMaterial + costoOjaletes + costoPerfiles + costoLaminado + costoDiseno;
+            const total = costoMaterial + costoLaminado + costoOjaletes + costoPerfiles + costoDiseno;
             
             document.getElementById('materialCost').textContent = formatCurrency(costoMaterial);
+            document.getElementById('laminadoCost').textContent = formatCurrency(costoLaminado);
             document.getElementById('ojaletesCost').textContent = formatCurrency(costoOjaletes);
             document.getElementById('perfilesCost').textContent = formatCurrency(costoPerfiles);
-            document.getElementById('laminadoCost').textContent = formatCurrency(costoLaminado);
             document.getElementById('disenoCost').textContent = formatCurrency(costoDiseno);
             document.getElementById('totalAmount').textContent = formatCurrency(total);
         }
@@ -353,24 +399,29 @@
         
         function copiarCotizacion() {
             const material = materialSelect.options[materialSelect.selectedIndex].text;
+            const laminado = laminadoSelect.options[laminadoSelect.selectedIndex].text;
             const ojaletes = parseInt(ojaletesInput.value) || 0;
             const perfiles = perfilesCheckbox.checked;
-            const laminado = parseFloat(laminadoInput.value) || 0;
             const diseno = parseFloat(disenoInput.value) || 0;
             
             let texto = '📋 COTIZACIÓN - MEDIOS IMPRESOS\n\n';
             texto += '📏 Medidas:\n';
             texto += '   • Alto: ' + alto.toFixed(2) + 'm\n';
             texto += '   • Ancho: ' + ancho.toFixed(2) + 'm\n';
-            texto += '   • Total: ' + m2.toFixed(2) + ' m²\n\n';
+            texto += '   • Total: ' + m2Real.toFixed(2) + ' m²';
+            if (m2Real > 0 && m2Real < 1) {
+                texto += ' (se cobra 1 m² mínimo)';
+            }
+            texto += '\n\n';
+            
             texto += '🎨 Material:\n   • ' + material + '\n';
             texto += '   • Costo: ' + document.getElementById('materialCost').textContent + '\n\n';
             
-            if (ojaletes > 0 || perfiles || laminado > 0 || diseno > 0) {
+            if (laminadoPrecio > 0 || ojaletes > 0 || perfiles || diseno > 0) {
                 texto += '✨ Terminados:\n';
+                if (laminadoPrecio > 0) texto += '   • ' + laminado + ': ' + document.getElementById('laminadoCost').textContent + '\n';
                 if (ojaletes > 0) texto += '   • Ojaletes (' + ojaletes + '): ' + document.getElementById('ojaletesCost').textContent + '\n';
                 if (perfiles) texto += '   • Perfiles plásticos: ' + document.getElementById('perfilesCost').textContent + '\n';
-                if (laminado > 0) texto += '   • Laminado ($' + laminado.toLocaleString('es-CO') + '/m²): ' + document.getElementById('laminadoCost').textContent + '\n';
                 if (diseno > 0) texto += '   • Diseño: ' + document.getElementById('disenoCost').textContent + '\n';
                 texto += '\n';
             }
