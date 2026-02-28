@@ -115,6 +115,38 @@
             font-size: 0.85em;
             opacity: 0.9;
         }
+        .sticker-calc {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        .sticker-calc.active {
+            display: block;
+        }
+        .sticker-calc h3 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        .sticker-result {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .sticker-result .cantidad {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .sticker-result .label {
+            color: #666;
+            margin-top: 5px;
+        }
         .breakdown {
             background: #f8f9fa;
             padding: 20px;
@@ -234,11 +266,31 @@
                         </optgroup>
                         <optgroup label="Vinilos">
                             <option value="22000">Vinilo - $22,000/m²</option>
-                            <option value="35000-0.6">Vinilo Petroquelado - $35,000/60cm</option>
+                            <option value="35000-0.6-petro">Vinilo Petroquelado - $35,000/60cm×1m</option>
                             <option value="49800">Vinilo Holográfico - $49,800/m²</option>
-                            <option value="75000-0.6">Vinilo Holográfico Petroquelado - $75,000/60cm</option>
+                            <option value="75000-0.6-petro">Vinilo Holográfico Petroquelado - $75,000/60cm×1m</option>
                         </optgroup>
                     </select>
+                </div>
+
+                <div id="stickerCalc" class="sticker-calc">
+                    <h3>🏷️ Calculadora de Stickers</h3>
+                    <p style="color: #856404; margin-bottom: 15px;">Hoja estándar: 60cm × 100cm (área útil: 58cm × 100cm)</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="stickerAncho">Ancho del sticker (cm):</label>
+                            <input type="number" id="stickerAncho" step="0.1" min="0" placeholder="Ej: 5">
+                        </div>
+                        <div class="form-group">
+                            <label for="stickerAlto">Alto del sticker (cm):</label>
+                            <input type="number" id="stickerAlto" step="0.1" min="0" placeholder="Ej: 5">
+                        </div>
+                    </div>
+                    <div class="sticker-result" id="stickerResult" style="display: none;">
+                        <div class="cantidad" id="stickerCantidad">0</div>
+                        <div class="label">stickers caben en una hoja</div>
+                        <small style="color: #666; margin-top: 10px; display: block;" id="stickerDetalle"></small>
+                    </div>
                 </div>
             </div>
 
@@ -309,6 +361,7 @@
     <script>
         let alto = 0, ancho = 0, m2Real = 0, m2Cobro = 0, materialPrecio = 0, materialUnidad = 1;
         let laminadoPrecio = 0, laminadoUnidad = 1;
+        let esPetroquelado = false;
         
         const altoInput = document.getElementById('alto');
         const anchoInput = document.getElementById('ancho');
@@ -319,20 +372,53 @@
         const ojaletesInput = document.getElementById('ojaletes');
         const perfilesCheckbox = document.getElementById('perfiles');
         const disenoInput = document.getElementById('diseno');
+        const stickerCalc = document.getElementById('stickerCalc');
+        const stickerAnchoInput = document.getElementById('stickerAncho');
+        const stickerAltoInput = document.getElementById('stickerAlto');
+        const stickerResult = document.getElementById('stickerResult');
         
         altoInput.addEventListener('input', calcular);
         anchoInput.addEventListener('input', calcular);
-        materialSelect.addEventListener('change', calcular);
+        materialSelect.addEventListener('change', function() {
+            const value = materialSelect.value;
+            esPetroquelado = value.includes('petro');
+            stickerCalc.classList.toggle('active', esPetroquelado);
+            calcular();
+        });
         laminadoSelect.addEventListener('change', calcular);
         ojaletesInput.addEventListener('input', calcular);
         perfilesCheckbox.addEventListener('change', calcular);
         disenoInput.addEventListener('input', calcular);
+        stickerAnchoInput.addEventListener('input', calcularStickers);
+        stickerAltoInput.addEventListener('input', calcularStickers);
+        
+        function calcularStickers() {
+            const anchoSticker = parseFloat(stickerAnchoInput.value) || 0;
+            const altoSticker = parseFloat(stickerAltoInput.value) || 0;
+            
+            if (anchoSticker <= 0 || altoSticker <= 0) {
+                stickerResult.style.display = 'none';
+                return;
+            }
+            
+            const areaUtilAncho = 58; // cm
+            const areaUtilAlto = 100; // cm
+            const separacion = 0.5; // cm
+            
+            const columnas = Math.floor(areaUtilAncho / (anchoSticker + separacion));
+            const filas = Math.floor(areaUtilAlto / (altoSticker + separacion));
+            const total = columnas * filas;
+            
+            document.getElementById('stickerCantidad').textContent = total;
+            document.getElementById('stickerDetalle').textContent = columnas + ' columnas × ' + filas + ' filas (separación: 0.5cm)';
+            stickerResult.style.display = 'block';
+        }
         
         function calcular() {
             alto = parseFloat(altoInput.value) || 0;
             ancho = parseFloat(anchoInput.value) || 0;
             m2Real = alto * ancho;
-            m2Cobro = Math.max(m2Real, 1); // Mínimo 1 m²
+            m2Cobro = Math.max(m2Real, 1);
             
             m2Display.textContent = m2Real.toFixed(2) + ' m²';
             
@@ -342,7 +428,6 @@
                 minimoMsg.textContent = '';
             }
             
-            // Material base
             const materialValue = materialSelect.value;
             if (materialValue.includes('-')) {
                 const parts = materialValue.split('-');
@@ -353,7 +438,6 @@
                 materialUnidad = 1;
             }
             
-            // Laminado
             const laminadoValue = laminadoSelect.value;
             if (laminadoValue.includes('-')) {
                 const parts = laminadoValue.split('-');
@@ -364,11 +448,13 @@
                 laminadoUnidad = 1;
             }
             
-            // Calcular costos
             let costoMaterial = 0;
             let costoLaminado = 0;
             
-            if (materialUnidad === 1) {
+            if (esPetroquelado) {
+                const metrosLineales = Math.max(alto, 1);
+                costoMaterial = metrosLineales * materialPrecio;
+            } else if (materialUnidad === 1) {
                 costoMaterial = m2Cobro * materialPrecio;
             } else {
                 costoMaterial = alto * materialPrecio;
@@ -408,12 +494,28 @@
             texto += '📏 Medidas:\n';
             texto += '   • Alto: ' + alto.toFixed(2) + 'm\n';
             texto += '   • Ancho: ' + ancho.toFixed(2) + 'm\n';
-            texto += '   • Total: ' + m2Real.toFixed(2) + ' m²';
-            if (m2Real > 0 && m2Real < 1) {
-                texto += ' (se cobra 1 m² mínimo)';
-            }
-            texto += '\n\n';
             
+            if (esPetroquelado) {
+                const metrosLineales = Math.max(alto, 1);
+                texto += '   • Metros lineales: ' + metrosLineales.toFixed(2) + 'm';
+                if (alto < 1) texto += ' (mínimo 1m)';
+                texto += '\n';
+            } else {
+                texto += '   • Total: ' + m2Real.toFixed(2) + ' m²';
+                if (m2Real > 0 && m2Real < 1) {
+                    texto += ' (se cobra 1 m² mínimo)';
+                }
+                texto += '\n';
+            }
+            
+            if (esPetroquelado && stickerResult.style.display !== 'none') {
+                const cantidad = document.getElementById('stickerCantidad').textContent;
+                const anchoSticker = stickerAnchoInput.value;
+                const altoSticker = stickerAltoInput.value;
+                texto += '   • Stickers ' + anchoSticker + '×' + altoSticker + 'cm: ' + cantidad + ' unidades por hoja\n';
+            }
+            
+            texto += '\n';
             texto += '🎨 Material:\n   • ' + material + '\n';
             texto += '   • Costo: ' + document.getElementById('materialCost').textContent + '\n\n';
             
