@@ -56,6 +56,11 @@
         .form-group {
             margin-bottom: 20px;
         }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
         .form-group label {
             display: block;
             margin-bottom: 8px;
@@ -177,6 +182,9 @@
             .total-amount {
                 font-size: 2em;
             }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -190,13 +198,15 @@
         <div class="calculator">
             <div class="section">
                 <h2>📏 Medidas</h2>
-                <div class="form-group">
-                    <label for="metros">Metros Lineales:</label>
-                    <input type="number" id="metros" step="0.01" min="0" placeholder="Ej: 5.5">
-                </div>
-                <div class="form-group">
-                    <label for="ancho">Ancho (metros):</label>
-                    <input type="number" id="ancho" step="0.01" min="0" value="1" placeholder="Ej: 1.5">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="alto">Alto (metros):</label>
+                        <input type="number" id="alto" step="0.01" min="0" placeholder="Ej: 2">
+                    </div>
+                    <div class="form-group">
+                        <label for="ancho">Ancho (metros):</label>
+                        <input type="number" id="ancho" step="0.01" min="0" placeholder="Ej: 1">
+                    </div>
                 </div>
                 <div class="info-box">
                     <strong>Metros cuadrados:</strong> <span id="m2Display">0.00 m²</span>
@@ -244,6 +254,10 @@
                     </label>
                 </div>
                 <div class="form-group">
+                    <label for="laminado">Laminado (precio por m²):</label>
+                    <input type="number" id="laminado" min="0" value="0" placeholder="Ingresa el precio por m²">
+                </div>
+                <div class="form-group">
                     <label for="diseno">Diseño (opcional):</label>
                     <input type="number" id="diseno" min="0" value="0" placeholder="Ingresa el valor">
                 </div>
@@ -264,6 +278,10 @@
                         <span id="perfilesCost">$0</span>
                     </div>
                     <div class="breakdown-item">
+                        <span>Laminado:</span>
+                        <span id="laminadoCost">$0</span>
+                    </div>
+                    <div class="breakdown-item">
                         <span>Diseño:</span>
                         <span id="disenoCost">$0</span>
                     </div>
@@ -278,27 +296,29 @@
     </div>
 
     <script>
-        let metros = 0, ancho = 1, m2 = 0, materialPrecio = 0, materialUnidad = 1;
+        let alto = 0, ancho = 0, m2 = 0, materialPrecio = 0, materialUnidad = 1;
         
-        const metrosInput = document.getElementById('metros');
+        const altoInput = document.getElementById('alto');
         const anchoInput = document.getElementById('ancho');
         const m2Display = document.getElementById('m2Display');
         const materialSelect = document.getElementById('material');
         const ojaletesInput = document.getElementById('ojaletes');
         const perfilesCheckbox = document.getElementById('perfiles');
+        const laminadoInput = document.getElementById('laminado');
         const disenoInput = document.getElementById('diseno');
         
-        metrosInput.addEventListener('input', calcular);
+        altoInput.addEventListener('input', calcular);
         anchoInput.addEventListener('input', calcular);
         materialSelect.addEventListener('change', calcular);
         ojaletesInput.addEventListener('input', calcular);
         perfilesCheckbox.addEventListener('change', calcular);
+        laminadoInput.addEventListener('input', calcular);
         disenoInput.addEventListener('input', calcular);
         
         function calcular() {
-            metros = parseFloat(metrosInput.value) || 0;
-            ancho = parseFloat(anchoInput.value) || 1;
-            m2 = metros * ancho;
+            alto = parseFloat(altoInput.value) || 0;
+            ancho = parseFloat(anchoInput.value) || 0;
+            m2 = alto * ancho;
             m2Display.textContent = m2.toFixed(2) + ' m²';
             
             const materialValue = materialSelect.value;
@@ -311,15 +331,18 @@
                 materialUnidad = 1;
             }
             
-            let costoMaterial = materialUnidad === 1 ? m2 * materialPrecio : metros * materialPrecio;
+            let costoMaterial = materialUnidad === 1 ? m2 * materialPrecio : alto * materialPrecio;
             const costoOjaletes = (parseInt(ojaletesInput.value) || 0) * 2000;
             const costoPerfiles = perfilesCheckbox.checked ? 20000 : 0;
+            const precioLaminadoM2 = parseFloat(laminadoInput.value) || 0;
+            const costoLaminado = m2 * precioLaminadoM2;
             const costoDiseno = parseFloat(disenoInput.value) || 0;
-            const total = costoMaterial + costoOjaletes + costoPerfiles + costoDiseno;
+            const total = costoMaterial + costoOjaletes + costoPerfiles + costoLaminado + costoDiseno;
             
             document.getElementById('materialCost').textContent = formatCurrency(costoMaterial);
             document.getElementById('ojaletesCost').textContent = formatCurrency(costoOjaletes);
             document.getElementById('perfilesCost').textContent = formatCurrency(costoPerfiles);
+            document.getElementById('laminadoCost').textContent = formatCurrency(costoLaminado);
             document.getElementById('disenoCost').textContent = formatCurrency(costoDiseno);
             document.getElementById('totalAmount').textContent = formatCurrency(total);
         }
@@ -332,20 +355,22 @@
             const material = materialSelect.options[materialSelect.selectedIndex].text;
             const ojaletes = parseInt(ojaletesInput.value) || 0;
             const perfiles = perfilesCheckbox.checked;
+            const laminado = parseFloat(laminadoInput.value) || 0;
             const diseno = parseFloat(disenoInput.value) || 0;
             
             let texto = '📋 COTIZACIÓN - MEDIOS IMPRESOS\n\n';
             texto += '📏 Medidas:\n';
-            texto += '   • Metros lineales: ' + metros.toFixed(2) + 'm\n';
+            texto += '   • Alto: ' + alto.toFixed(2) + 'm\n';
             texto += '   • Ancho: ' + ancho.toFixed(2) + 'm\n';
             texto += '   • Total: ' + m2.toFixed(2) + ' m²\n\n';
             texto += '🎨 Material:\n   • ' + material + '\n';
             texto += '   • Costo: ' + document.getElementById('materialCost').textContent + '\n\n';
             
-            if (ojaletes > 0 || perfiles || diseno > 0) {
+            if (ojaletes > 0 || perfiles || laminado > 0 || diseno > 0) {
                 texto += '✨ Terminados:\n';
                 if (ojaletes > 0) texto += '   • Ojaletes (' + ojaletes + '): ' + document.getElementById('ojaletesCost').textContent + '\n';
                 if (perfiles) texto += '   • Perfiles plásticos: ' + document.getElementById('perfilesCost').textContent + '\n';
+                if (laminado > 0) texto += '   • Laminado ($' + laminado.toLocaleString('es-CO') + '/m²): ' + document.getElementById('laminadoCost').textContent + '\n';
                 if (diseno > 0) texto += '   • Diseño: ' + document.getElementById('disenoCost').textContent + '\n';
                 texto += '\n';
             }
