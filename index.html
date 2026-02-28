@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cotizador - Medios Impresos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -215,10 +216,9 @@
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
-        .btn-copy {
+        .btn-copy, .btn-excel {
             width: 100%;
             padding: 15px;
-            background: #28a745;
             color: white;
             border: none;
             border-radius: 10px;
@@ -226,13 +226,25 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+        .btn-copy {
+            background: #28a745;
         }
         .btn-copy:hover {
             background: #218838;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
         }
-        .btn-copy:active {
+        .btn-excel {
+            background: #217346;
+        }
+        .btn-excel:hover {
+            background: #1a5c37;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 115, 70, 0.3);
+        }
+        .btn-copy:active, .btn-excel:active {
             transform: translateY(0);
         }
         @media (max-width: 600px) {
@@ -259,6 +271,20 @@
         </header>
 
         <div class="calculator">
+            <div class="section">
+                <h2>👤 Datos del Cliente</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombreCliente">Nombre del cliente:</label>
+                        <input type="text" id="nombreCliente" placeholder="Ej: Juan Pérez">
+                    </div>
+                    <div class="form-group">
+                        <label for="contactoCliente">Teléfono/Email:</label>
+                        <input type="text" id="contactoCliente" placeholder="Ej: 300 123 4567">
+                    </div>
+                </div>
+            </div>
+
             <div class="section">
                 <h2>📏 Medidas</h2>
                 <div class="form-row">
@@ -381,6 +407,7 @@
                     <h2>TOTAL:</h2>
                     <div class="total-amount" id="totalAmount">$0</div>
                 </div>
+                <button class="btn-excel" onclick="descargarExcel()">💾 Descargar Cotización (Excel)</button>
                 <button class="btn-copy" onclick="copiarCotizacion()">📋 Copiar Cotización</button>
             </div>
         </div>
@@ -391,6 +418,8 @@
         let laminadoPrecio = 0, laminadoUnidad = 1;
         let esPetroquelado = false;
         
+        const nombreClienteInput = document.getElementById('nombreCliente');
+        const contactoClienteInput = document.getElementById('contactoCliente');
         const altoInput = document.getElementById('alto');
         const anchoInput = document.getElementById('ancho');
         const m2Display = document.getElementById('m2Display');
@@ -519,14 +548,95 @@
             return '$' + Math.round(value).toLocaleString('es-CO');
         }
         
-        function copiarCotizacion() {
+        function descargarExcel() {
+            const nombreCliente = nombreClienteInput.value || 'Sin nombre';
+            const contactoCliente = contactoClienteInput.value || 'Sin contacto';
             const material = materialSelect.options[materialSelect.selectedIndex].text;
             const laminado = laminadoSelect.options[laminadoSelect.selectedIndex].text;
             const ojaletes = parseInt(ojaletesInput.value) || 0;
             const perfiles = perfilesCheckbox.checked;
             const diseno = parseFloat(disenoInput.value) || 0;
             
+            const costoMaterial = parseFloat(document.getElementById('materialCost').textContent.replace(/[$,]/g, ''));
+            const costoLaminado = parseFloat(document.getElementById('laminadoCost').textContent.replace(/[$,]/g, ''));
+            const costoOjaletes = parseFloat(document.getElementById('ojaletesCost').textContent.replace(/[$,]/g, ''));
+            const costoPerfiles = parseFloat(document.getElementById('perfilesCost').textContent.replace(/[$,]/g, ''));
+            const costoDiseno = parseFloat(document.getElementById('disenoCost').textContent.replace(/[$,]/g, ''));
+            const total = parseFloat(document.getElementById('totalAmount').textContent.replace(/[$,]/g, ''));
+            
+            const fecha = new Date().toLocaleDateString('es-CO');
+            
+            const data = [
+                ['COTIZACIÓN - MEDIOS IMPRESOS'],
+                ['Fecha:', fecha],
+                [],
+                ['DATOS DEL CLIENTE'],
+                ['Nombre:', nombreCliente],
+                ['Contacto:', contactoCliente],
+                [],
+                ['MEDIDAS'],
+                ['Alto (m):', alto.toFixed(2)],
+                ['Ancho (m):', ancho.toFixed(2)],
+                ['Total m²:', m2Real.toFixed(2)]
+            ];
+            
+            if (esPetroquelado) {
+                const metrosLineales = Math.max(alto, 1);
+                data.push(['Metros lineales:', metrosLineales.toFixed(2)]);
+                
+                if (stickerResult.style.display !== 'none') {
+                    const cantidad = document.getElementById('stickerCantidad').textContent;
+                    const anchoSticker = stickerAnchoInput.value;
+                    const altoSticker = stickerAltoInput.value;
+                    data.push(['Stickers ' + anchoSticker + '×' + altoSticker + 'cm:', cantidad + ' unidades']);
+                }
+            }
+            
+            data.push(
+                [],
+                ['MATERIAL'],
+                ['Tipo:', material],
+                ['Costo:', '$' + costoMaterial.toLocaleString('es-CO')],
+                [],
+                ['TERMINADOS']
+            );
+            
+            if (costoLaminado > 0) data.push(['Laminado (' + laminado + '):', '$' + costoLaminado.toLocaleString('es-CO')]);
+            if (ojaletes > 0) data.push(['Ojaletes (' + ojaletes + ' unidades):', '$' + costoOjaletes.toLocaleString('es-CO')]);
+            if (perfiles) data.push(['Perfiles plásticos:', '$' + costoPerfiles.toLocaleString('es-CO')]);
+            if (diseno > 0) data.push(['Diseño:', '$' + costoDiseno.toLocaleString('es-CO')]);
+            
+            data.push(
+                [],
+                ['TOTAL', '$' + total.toLocaleString('es-CO')]
+            );
+            
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Cotización');
+            
+            const filename = 'Cotizacion_' + nombreCliente.replace(/\s+/g, '_') + '_' + fecha.replace(/\//g, '-') + '.xlsx';
+            XLSX.writeFile(wb, filename);
+        }
+        
+        function copiarCotizacion() {
+            const material = materialSelect.options[materialSelect.selectedIndex].text;
+            const laminado = laminadoSelect.options[laminadoSelect.selectedIndex].text;
+            const ojaletes = parseInt(ojaletesInput.value) || 0;
+            const perfiles = perfilesCheckbox.checked;
+            const diseno = parseFloat(disenoInput.value) || 0;
+            const nombreCliente = nombreClienteInput.value;
+            const contactoCliente = contactoClienteInput.value;
+            
             let texto = '📋 COTIZACIÓN - MEDIOS IMPRESOS\n\n';
+            
+            if (nombreCliente || contactoCliente) {
+                texto += '👤 Cliente:\n';
+                if (nombreCliente) texto += '   • Nombre: ' + nombreCliente + '\n';
+                if (contactoCliente) texto += '   • Contacto: ' + contactoCliente + '\n';
+                texto += '\n';
+            }
+            
             texto += '📏 Medidas:\n';
             texto += '   • Alto: ' + alto.toFixed(2) + 'm\n';
             texto += '   • Ancho: ' + ancho.toFixed(2) + 'm\n';
