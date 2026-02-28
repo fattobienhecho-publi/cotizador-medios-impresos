@@ -115,6 +115,31 @@
             font-size: 0.85em;
             opacity: 0.9;
         }
+        .btn-sticker {
+            width: 100%;
+            padding: 12px;
+            background: #ffc107;
+            color: #333;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+            display: none;
+        }
+        .btn-sticker.show {
+            display: block;
+        }
+        .btn-sticker:hover {
+            background: #ffb300;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+        }
+        .btn-sticker:active {
+            transform: translateY(0);
+        }
         .sticker-calc {
             background: #fff3cd;
             border: 2px solid #ffc107;
@@ -250,6 +275,9 @@
                     <strong>Metros cuadrados:</strong> <span id="m2Display">0.00 m²</span>
                     <small id="minimoMsg"></small>
                 </div>
+                <button class="btn-sticker" id="btnSticker" onclick="toggleStickerCalc()">
+                    🏷️ Calculadora de Stickers
+                </button>
             </div>
 
             <div class="section">
@@ -373,6 +401,7 @@
         const perfilesCheckbox = document.getElementById('perfiles');
         const disenoInput = document.getElementById('diseno');
         const stickerCalc = document.getElementById('stickerCalc');
+        const btnSticker = document.getElementById('btnSticker');
         const stickerAnchoInput = document.getElementById('stickerAncho');
         const stickerAltoInput = document.getElementById('stickerAlto');
         const stickerResult = document.getElementById('stickerResult');
@@ -382,7 +411,10 @@
         materialSelect.addEventListener('change', function() {
             const value = materialSelect.value;
             esPetroquelado = value.includes('petro');
-            stickerCalc.classList.toggle('active', esPetroquelado);
+            btnSticker.classList.toggle('show', esPetroquelado);
+            if (!esPetroquelado) {
+                stickerCalc.classList.remove('active');
+            }
             calcular();
         });
         laminadoSelect.addEventListener('change', calcular);
@@ -391,6 +423,10 @@
         disenoInput.addEventListener('input', calcular);
         stickerAnchoInput.addEventListener('input', calcularStickers);
         stickerAltoInput.addEventListener('input', calcularStickers);
+        
+        function toggleStickerCalc() {
+            stickerCalc.classList.toggle('active');
+        }
         
         function calcularStickers() {
             const anchoSticker = parseFloat(stickerAnchoInput.value) || 0;
@@ -401,9 +437,9 @@
                 return;
             }
             
-            const areaUtilAncho = 58; // cm
-            const areaUtilAlto = 100; // cm
-            const separacion = 0.5; // cm
+            const areaUtilAncho = 58;
+            const areaUtilAlto = 100;
+            const separacion = 0.5;
             
             const columnas = Math.floor(areaUtilAncho / (anchoSticker + separacion));
             const filas = Math.floor(areaUtilAlto / (altoSticker + separacion));
