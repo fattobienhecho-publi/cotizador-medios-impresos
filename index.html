@@ -128,10 +128,6 @@
             cursor: pointer;
             transition: all 0.3s;
             margin-top: 15px;
-            display: none;
-        }
-        .btn-sticker.show {
-            display: block;
         }
         .btn-sticker:hover {
             background: #ffb300;
@@ -304,6 +300,26 @@
                 <button class="btn-sticker" id="btnSticker" onclick="toggleStickerCalc()">
                     🏷️ Calculadora de Stickers
                 </button>
+                
+                <div id="stickerCalc" class="sticker-calc">
+                    <h3>🏷️ Calculadora de Stickers</h3>
+                    <p style="color: #856404; margin-bottom: 15px;">Hoja estándar: 60cm × 100cm (área útil: 58cm × 100cm)</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="stickerAncho">Ancho del sticker (cm):</label>
+                            <input type="number" id="stickerAncho" step="0.1" min="0" placeholder="Ej: 5">
+                        </div>
+                        <div class="form-group">
+                            <label for="stickerAlto">Alto del sticker (cm):</label>
+                            <input type="number" id="stickerAlto" step="0.1" min="0" placeholder="Ej: 5">
+                        </div>
+                    </div>
+                    <div class="sticker-result" id="stickerResult" style="display: none;">
+                        <div class="cantidad" id="stickerCantidad">0</div>
+                        <div class="label">stickers caben en una hoja</div>
+                        <small style="color: #666; margin-top: 10px; display: block;" id="stickerDetalle"></small>
+                    </div>
+                </div>
             </div>
 
             <div class="section">
@@ -325,26 +341,6 @@
                             <option value="75000-0.6-petro">Vinilo Holográfico Petroquelado - $75,000/60cm×1m</option>
                         </optgroup>
                     </select>
-                </div>
-
-                <div id="stickerCalc" class="sticker-calc">
-                    <h3>🏷️ Calculadora de Stickers</h3>
-                    <p style="color: #856404; margin-bottom: 15px;">Hoja estándar: 60cm × 100cm (área útil: 58cm × 100cm)</p>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="stickerAncho">Ancho del sticker (cm):</label>
-                            <input type="number" id="stickerAncho" step="0.1" min="0" placeholder="Ej: 5">
-                        </div>
-                        <div class="form-group">
-                            <label for="stickerAlto">Alto del sticker (cm):</label>
-                            <input type="number" id="stickerAlto" step="0.1" min="0" placeholder="Ej: 5">
-                        </div>
-                    </div>
-                    <div class="sticker-result" id="stickerResult" style="display: none;">
-                        <div class="cantidad" id="stickerCantidad">0</div>
-                        <div class="label">stickers caben en una hoja</div>
-                        <small style="color: #666; margin-top: 10px; display: block;" id="stickerDetalle"></small>
-                    </div>
                 </div>
             </div>
 
@@ -440,10 +436,6 @@
         materialSelect.addEventListener('change', function() {
             const value = materialSelect.value;
             esPetroquelado = value.includes('petro');
-            btnSticker.classList.toggle('show', esPetroquelado);
-            if (!esPetroquelado) {
-                stickerCalc.classList.remove('active');
-            }
             calcular();
         });
         laminadoSelect.addEventListener('change', calcular);
@@ -654,7 +646,7 @@
                 texto += '\n';
             }
             
-            if (esPetroquelado && stickerResult.style.display !== 'none') {
+            if (stickerResult.style.display !== 'none') {
                 const cantidad = document.getElementById('stickerCantidad').textContent;
                 const anchoSticker = stickerAnchoInput.value;
                 const altoSticker = stickerAltoInput.value;
